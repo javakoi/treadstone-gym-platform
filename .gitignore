@@ -1,0 +1,16 @@
+# Secrets - NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env.local
+
+# Dependencies
+gym-platform/node_modules
+
+# Build output
+gym-platform/.next
+gym-platform/out
+gym-platform/build
+
+# OS
+.DS_Store
