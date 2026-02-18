@@ -10,6 +10,7 @@ export default function MembersPage() {
   const [membership, setMembership] = useState<any | null>(null);
   const [waiver, setWaiver] = useState<any | null>(null);
   const [visits, setVisits] = useState<any[]>([]);
+  const [removingMembership, setRemovingMembership] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined" && !sessionStorage.getItem("staff_auth")) {
@@ -39,6 +40,21 @@ export default function MembersPage() {
     setMembership(memData.membership);
     setWaiver(waiverData.waiver);
     setVisits(visitsData.visits || []);
+  };
+
+  const removeMembership = async () => {
+    if (!membership?.id) return;
+    if (!confirm("Remove this membership? The customer will no longer have member access.")) return;
+    setRemovingMembership(true);
+    try {
+      const res = await fetch(`/api/memberships/${membership.id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to remove membership");
+      setMembership(null);
+    } catch (err: any) {
+      alert(err.message || "Failed to remove membership");
+    }
+    setRemovingMembership(false);
   };
 
   return (
@@ -106,7 +122,22 @@ export default function MembersPage() {
               <p><span className="text-stone-500">Key Tag:</span> {selectedCustomer.key_tag_code || "—"}</p>
               <p><span className="text-stone-500">Waiver:</span> {waiver ? "✓ Signed" : "✗ Not signed"}</p>
               <p><span className="text-stone-500">Membership:</span> {membership?.status === "active" ? "✓ Active" : "—"}</p>
+              {membership?.status === "active" && (
+                <p><span className="text-stone-500">Plan:</span> {membership.membership_plans?.name || "—"}</p>
+              )}
             </div>
+
+            {membership?.status === "active" && (
+              <div>
+                <button
+                  onClick={removeMembership}
+                  disabled={removingMembership}
+                  className="px-4 py-2 rounded-lg bg-red-600/80 hover:bg-red-600 disabled:opacity-50 text-sm"
+                >
+                  {removingMembership ? "Removing..." : "Remove Membership"}
+                </button>
+              </div>
+            )}
 
             <div>
               <h3 className="font-semibold mb-2">Recent Visits ({visits.length})</h3>
