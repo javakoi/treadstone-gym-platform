@@ -164,6 +164,17 @@ export default function WaiversPage() {
                   <h3 className="text-sm text-stone-500 mb-1">Waiver Version</h3>
                   <p>{selectedWaiver.waiver_version}</p>
                 </div>
+
+                <div className="pt-2">
+                  <a
+                    href={`/waiver/print/${selectedWaiver.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center rounded-lg bg-treadstone-600 px-4 py-2 text-sm font-semibold text-white hover:bg-treadstone-500"
+                  >
+                    Print signed waiver
+                  </a>
+                </div>
               </div>
             ) : (
               <p className="text-stone-500">Select a waiver to view full details</p>

@@ -88,17 +88,22 @@ export async function POST(request: NextRequest) {
       customerId = newCustomer.id;
     }
 
-    const { error: waiverError } = await supabase.from("waivers").insert({
-      customer_id: customerId,
-      waiver_type: waiver_type || "adult",
-      guardian_name: guardian_name || null,
-      guardian_signature: guardian_signature || null,
-      signature_data,
-      ip_address: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || null,
-      waiver_version: "1.0",
-    });
+    const { data: newWaiver, error: waiverError } = await supabase
+      .from("waivers")
+      .insert({
+        customer_id: customerId,
+        waiver_type: waiver_type || "adult",
+        guardian_name: guardian_name || null,
+        guardian_signature: guardian_signature || null,
+        signature_data,
+        ip_address:
+          request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || null,
+        waiver_version: "1.0",
+      })
+      .select("id")
+      .single();
 
-    if (waiverError) {
+    if (waiverError || !newWaiver) {
       console.error("Waiver insert error:", waiverError);
       return NextResponse.json(
         { error: "Failed to save waiver" },
@@ -109,6 +114,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       customer_id: customerId,
+      waiver_id: newWaiver.id,
       message: "Waiver signed successfully",
     });
   } catch (err) {

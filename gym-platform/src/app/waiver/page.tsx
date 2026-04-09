@@ -2,18 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-
-const WAIVER_TEXT = `
-TREADSTONE CLIMBING - RELEASE OF LIABILITY, WAIVER OF CLAIMS, ASSUMPTION OF RISKS AND INDEMNITY AGREEMENT
-
-By signing this agreement, I acknowledge that indoor rock climbing, bouldering, parkour, ninja warrior training, and related activities involve inherent risks of injury or death. I voluntarily assume all risks associated with these activities.
-
-I agree to release, waive, discharge, and covenant not to sue Treadstone Climbing Gym, its owners, employees, and affiliates from any and all liability for any injury, death, or property damage arising from my participation, whether caused by negligence or otherwise.
-
-I certify that I am in good physical condition and have no medical conditions that would prevent my safe participation. I agree to follow all safety rules and instructions provided by staff.
-
-For minors: I am the parent/legal guardian and agree to the above on behalf of the minor named below.
-`;
+import { WAIVER_AGREEMENT_TEXT } from "@/lib/waiver-content";
 
 export default function WaiverPage() {
   const [step, setStep] = useState(1);
@@ -31,6 +20,7 @@ export default function WaiverPage() {
   });
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const [waiverId, setWaiverId] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +63,8 @@ export default function WaiverPage() {
         throw new Error(err.error || "Failed to submit waiver");
       }
 
+      const data = await res.json().catch(() => ({}));
+      if (data.waiver_id) setWaiverId(data.waiver_id);
       setStatus("success");
     } catch (err) {
       setStatus("error");
@@ -96,12 +88,24 @@ export default function WaiverPage() {
           <p className="text-stone-400 mb-6">
             You're all set. Head to the front desk to check in and start climbing.
           </p>
-          <Link
-            href="/"
-            className="inline-block px-6 py-3 rounded-lg bg-treadstone-600 hover:bg-treadstone-500 text-white font-semibold"
-          >
-            Return to Home
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            {waiverId && (
+              <Link
+                href={`/waiver/print/${waiverId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block px-6 py-3 rounded-lg border border-stone-600 hover:bg-stone-800 text-stone-100 font-semibold text-center"
+              >
+                Print signed waiver
+              </Link>
+            )}
+            <Link
+              href="/"
+              className="inline-block px-6 py-3 rounded-lg bg-treadstone-600 hover:bg-treadstone-500 text-white font-semibold text-center"
+            >
+              Return to Home
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -125,7 +129,7 @@ export default function WaiverPage() {
           {step === 1 && (
             <>
               <div className="p-4 rounded-lg bg-stone-800/50 border border-stone-700 overflow-y-auto max-h-64 text-sm text-stone-300 whitespace-pre-wrap">
-                {WAIVER_TEXT}
+                {WAIVER_AGREEMENT_TEXT}
               </div>
 
               <div className="space-y-4">
