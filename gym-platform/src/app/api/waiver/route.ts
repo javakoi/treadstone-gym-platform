@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -103,8 +105,28 @@ export async function POST(request: NextRequest) {
       .select("id")
       .single();
 
-    if (waiverError || !newWaiver) {
+    if (waiverError) {
       console.error("Waiver insert error:", waiverError);
+      return NextResponse.json(
+        { error: "Failed to save waiver" },
+        { status: 500 }
+      );
+    }
+
+    let waiverId = newWaiver?.id as string | undefined;
+    if (!waiverId) {
+      const { data: fallback } = await supabase
+        .from("waivers")
+        .select("id")
+        .eq("customer_id", customerId)
+        .order("signed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      waiverId = fallback?.id;
+    }
+
+    if (!waiverId) {
+      console.error("Waiver insert: no id returned");
       return NextResponse.json(
         { error: "Failed to save waiver" },
         { status: 500 }
@@ -114,7 +136,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       customer_id: customerId,
-      waiver_id: newWaiver.id,
+      waiver_id: waiverId,
       message: "Waiver signed successfully",
     });
   } catch (err) {

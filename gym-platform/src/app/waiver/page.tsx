@@ -58,13 +58,20 @@ export default function WaiverPage() {
         }),
       });
 
+      const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Failed to submit waiver");
+        throw new Error(payload.error || "Failed to submit waiver");
       }
 
-      const data = await res.json().catch(() => ({}));
-      if (data.waiver_id) setWaiverId(data.waiver_id);
+      let printId: string | null =
+        typeof payload.waiver_id === "string" ? payload.waiver_id : null;
+      if (!printId && typeof payload.customer_id === "string") {
+        const wr = await fetch(`/api/customers/${payload.customer_id}/waiver`);
+        const j = await wr.json().catch(() => ({}));
+        const latest = j.waiver?.id;
+        if (typeof latest === "string") printId = latest;
+      }
+      setWaiverId(printId);
       setStatus("success");
     } catch (err) {
       setStatus("error");
@@ -88,20 +95,24 @@ export default function WaiverPage() {
           <p className="text-stone-400 mb-6">
             You're all set. Head to the front desk to check in and start climbing.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            {waiverId && (
+          <div className="flex flex-col gap-3 justify-center max-w-sm mx-auto">
+            {waiverId ? (
               <Link
                 href={`/waiver/print/${waiverId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-block px-6 py-3 rounded-lg border border-stone-600 hover:bg-stone-800 text-stone-100 font-semibold text-center"
+                className="inline-block px-6 py-3 rounded-lg bg-treadstone-600 hover:bg-treadstone-500 text-white font-semibold text-center order-first"
               >
-                Print signed waiver
+                View / print signed waiver
               </Link>
+            ) : (
+              <p className="text-sm text-stone-500 text-center">
+                Printable copy: ask the front desk to open your waiver in Staff → Waivers, or ensure this site is updated to the latest version.
+              </p>
             )}
             <Link
               href="/"
-              className="inline-block px-6 py-3 rounded-lg bg-treadstone-600 hover:bg-treadstone-500 text-white font-semibold text-center"
+              className="inline-block px-6 py-3 rounded-lg border border-stone-600 hover:bg-stone-800 text-stone-100 font-semibold text-center"
             >
               Return to Home
             </Link>

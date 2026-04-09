@@ -115,6 +115,19 @@ export default function WaiversPage() {
             <h2 className="text-lg font-semibold mb-4">Waiver Details</h2>
             {selectedWaiver ? (
               <div className="rounded-xl bg-stone-800/50 border border-stone-700 p-6 space-y-4">
+                <div className="pb-4 border-b border-stone-700 -mt-1">
+                  <a
+                    href={`/waiver/print/${selectedWaiver.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center justify-center rounded-lg bg-treadstone-600 px-4 py-3 text-base font-semibold text-white hover:bg-treadstone-500"
+                  >
+                    View / print full signed waiver (new tab)
+                  </a>
+                  <p className="text-xs text-stone-500 mt-2 text-center">
+                    Opens the same legal text + signatures as on file.
+                  </p>
+                </div>
                 <div>
                   <h3 className="text-sm text-stone-500 mb-1">Customer</h3>
                   <p className="font-semibold">{selectedWaiver.signature_data || `${cust?.first_name} ${cust?.last_name}`.trim() || "—"}</p>
@@ -163,17 +176,6 @@ export default function WaiversPage() {
                 <div>
                   <h3 className="text-sm text-stone-500 mb-1">Waiver Version</h3>
                   <p>{selectedWaiver.waiver_version}</p>
-                </div>
-
-                <div className="pt-2">
-                  <a
-                    href={`/waiver/print/${selectedWaiver.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center justify-center rounded-lg bg-treadstone-600 px-4 py-2 text-sm font-semibold text-white hover:bg-treadstone-500"
-                  >
-                    Print signed waiver
-                  </a>
                 </div>
               </div>
             ) : (
